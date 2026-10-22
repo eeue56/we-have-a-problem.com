@@ -468,15 +468,15 @@ observer.observe(document.getElementById('results'));
 rerun.addEventListener('click', start);
 
 // Workarounds are collapsed by default. Open the one a link points at.
-function openLinkedWorkaround() {
+function openLinkedHash() {
   const el = document.getElementById(location.hash.slice(1));
   if (el instanceof HTMLDetailsElement && !el.open) {
     el.open = true;
     el.scrollIntoView();
   }
 }
-openLinkedWorkaround();
-window.addEventListener('hashchange', openLinkedWorkaround);
+openLinkedHash();
+window.addEventListener('hashchange', openLinkedHash);
 </script>
 </body>
 </html>
