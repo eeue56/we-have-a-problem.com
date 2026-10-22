@@ -66,7 +66,7 @@ openssl dgst -sha384 -verify EM-DV-TLS-CA-G3B.pub.pem -signature EM-DV-TLS-CA-G3
 
 <h2 id="actions"><a href="#actions">What actions have been taken?</a></h2>
 
-<p>The root programs and many downstream trust stores have taken action to protect their users. The certificates have been blocked in Firefox and Chrome since the 17th of October, in Apple devices since the 19th and on Microsoft platforms since the 20th.</p>
+<p>The root programs and many downstream trust stores have taken action to protect their users. The certificates have been blocked in Firefox and Chrome since the 17th of October, on Microsoft platforms since the 20th and on Apple products since the 22nd.</p>
 
 <p>The issue was responsibly disclosed to downstream trust stores on the 19th of October. Many have already released updates or are in the process of releasing updates.</p>
 
@@ -149,6 +149,7 @@ curl https://dv-g3b-aaa-noct-emudhra.we-have-a-problem.com/</pre>
     <tr><td>GNU Guix</td><td><a href="https://codeberg.org/guix/guix/commit/7608a9954a7ba0a9ce756bf3135dc0ba51a40af9">7608a99</a></td></tr>
     <tr><td>Homebrew ca-certificates</td><td><a href="https://github.com/Homebrew/homebrew-core/blob/d02b8762f4a29859c47a635a0d2683223fea9812/Formula/c/ca-certificates.rb">2026-09-25_1</a></td></tr>
     <tr><td>OmniOS web/ca-bundle</td><td><a href="https://github.com/omniosorg/omnios-build/blob/r151058/doc/ReleaseNotes.md#r151058y-2026-10-21">r151054by,<br>r151056ay,<br>r151058y</a></td></tr>
+    <tr><td>OpenBSD</td><td><a href="https://cvsweb.openbsd.org/checkout/src/lib/libcrypto/cert.pem?rev=1.37">current</a><br><a href="https://www.openbsd.org/errata80.html">8.0</a><br><a href="https://www.openbsd.org/errata79.html">7.9</a></td></tr>
     <tr><td>Ubuntu ca-certificates</td><td><a href="https://bugs.launchpad.net/ubuntu/+source/ca-certificates/+bug/2171507">20260816ubuntu0.22.04.1,<br>20260816ubuntu0.24.04.1,<br>20260816ubuntu0.26.04.1,<br>20260816ubuntu0.26.10.1</a></td></tr>
     <tr><td>Bottlerocket</td><td><a href="https://github.com/bottlerocket-os/bottlerocket/issues/4976" class="pending">pending</a></td></tr>
   </tbody>
@@ -192,14 +193,18 @@ curl https://dv-g3b-aaa-noct-emudhra.we-have-a-problem.com/</pre>
 <table class="patched">
   <thead><tr><th>Software</th><th>Patched version</th></tr></thead>
   <tbody>
+    <tr><td>ArgoCD</td><td><a href="https://github.com/argoproj/argo-cd/releases/tag/v3.3.18">3.3.18</a></td></tr>
     <tr><td>Claude Code</td><td><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21303">2.1.303</a></td></tr>
     <tr><td>Docker Desktop</td><td><a href="https://docs.docker.com/desktop/release-notes/#4962">4.96.2</a></td></tr>
     <tr><td>mise</td><td><a href="https://github.com/jdx/mise/releases/tag/v2026.10.17">2026.10.17</a></td></tr>
     <tr><td>pip</td><td><a href="https://github.com/pypa/pip/releases/tag/26.2.2">26.2.2</a></td></tr>
     <tr><td>pixi</td><td><a href="https://github.com/prefix-dev/pixi/releases/tag/v0.82.1">0.82.1</a></td></tr>
+    <tr><td>pypi-publish GitHub Action</td><td><a href="https://github.com/pypa/gh-action-pypi-publish/releases/tag/v1.14.3">1.14.3</a></td></tr>
     <tr><td>Rustup</td><td><a href="https://blog.rust-lang.org/2026/10/20/Rustup-1.29.2/">1.29.2</a></td></tr>
     <tr><td>uv</td><td><a href="https://github.com/astral-sh/uv/releases/tag/0.13.4">0.13.4</a></td></tr>
     <tr><td>Slack</td><td><a href="https://slack.com/intl/en-gb/release-notes/mac">Mac 4.52.182</a>, <a href="https://slack.com/intl/en-gb/release-notes/windows">Windows 4.52.182</a></td></tr>
+    <tr><td>Conda</td><td><a href="https://docs.conda.io/projects/conda/en/latest/release-notes.html#version-26.9.4">26.9.4</a></td></tr>
+    <tr><td>Godot</td><td><a href="https://github.com/godotengine/godot/pull/124724" class="pending">pending</a></td></tr>
   </tbody>
 </table>
 
