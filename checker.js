@@ -1,0 +1,135 @@
+// Trust checker shared by index.html and translated copies of it.
+//
+// Expects the page to contain a <table id="results"> with a <tbody>, a
+// <button id="rerun"> and an element with id="summary". Include it with
+// `defer` (from <head>) or at the end of <body>. To translate the user-facing
+// text, define window.CHECKER_STRINGS in an inline script before this one
+// runs; any key left out keeps the English default.
+
+// Hosts under test. Each intermediate is served twice: first chaining to its
+// emSign root, then via the Sectigo cross-sign chaining to AAA Certificate
+// Services. The `noct` hosts serve a leaf that was never logged to Certificate
+// Transparency, so CT-enforcing clients reject them even if they trust the
+// intermediate. Each server must respond to GET / with
+// `Access-Control-Allow-Origin: *` and a body containing EXPECTED_BODY.
+const HOSTS = [
+  { host: 'dv-g3b-emudhra.we-have-a-problem.com',     label: 'CN=EM DV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'emSign Root TLS CA - G3' },
+  { host: 'dv-g3c-emudhra.we-have-a-problem.com',     label: 'CN=EM DV TLS CA - G3C, O=eMudhra Inc, C=US', root: 'emSign Root TLS CA - G3' },
+  { host: 'ov-g3b-emudhra.we-have-a-problem.com',     label: 'CN=EM OV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'emSign Root TLS CA - G3' },
+  { host: 'ov-g3c-emudhra.we-have-a-problem.com',     label: 'CN=EM OV TLS CA - G3C, O=eMudhra Inc, C=US', root: 'emSign Root TLS CA - G3' },
+  { host: 'ev-g3b-emudhra.we-have-a-problem.com',     label: 'CN=EM EV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'emSign Root TLS CA - G3' },
+  { host: 'ev-g3c-emudhra.we-have-a-problem.com',     label: 'CN=EM EV TLS CA - G3C, O=eMudhra Inc, C=US', root: 'emSign Root TLS CA - G3' },
+  { host: 'dv-g3b-aaa-emudhra.we-have-a-problem.com', label: 'CN=EM DV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'AAA Certificate Services' },
+  { host: 'dv-g3c-aaa-emudhra.we-have-a-problem.com', label: 'CN=EM DV TLS CA - G3C, O=eMudhra Inc, C=US', root: 'AAA Certificate Services' },
+  { host: 'ov-g3b-aaa-emudhra.we-have-a-problem.com', label: 'CN=EM OV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'AAA Certificate Services' },
+  { host: 'ov-g3c-aaa-emudhra.we-have-a-problem.com', label: 'CN=EM OV TLS CA - G3C, O=eMudhra Inc, C=US', root: 'AAA Certificate Services' },
+  { host: 'ev-g3b-aaa-emudhra.we-have-a-problem.com', label: 'CN=EM EV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'AAA Certificate Services' },
+  { host: 'ev-g3c-aaa-emudhra.we-have-a-problem.com', label: 'CN=EM EV TLS CA - G3C, O=eMudhra Inc, C=US', root: 'AAA Certificate Services' },
+  { host: 'dv-g3b-noct-emudhra.we-have-a-problem.com',     label: 'CN=EM DV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'emSign Root TLS CA - G3', noct: true },
+  { host: 'dv-g3b-aaa-noct-emudhra.we-have-a-problem.com', label: 'CN=EM DV TLS CA - G3B, O=eMudhra BV, C=NL', root: 'AAA Certificate Services', noct: true },
+];
+const TIMEOUT_MS = 10000;
+const COOLDOWN_MS = 10000;
+// Present in every test server's response body. A response without it came
+// from something else, such as a TLS-intercepting proxy's block page.
+const EXPECTED_BODY = 'Your client successfully connected to the site.';
+
+const S = Object.assign({
+  noctTitle: 'No Certificate Transparency: this certificate was never logged to CT and has no SCTs. ' +
+    'Clients that enforce CT, such as Chrome, Safari and Firefox, reject it even if they still trust the intermediate.',
+  notYetChecked: 'not yet checked',
+  checking: 'checking…',
+  insecure: '❌ Insecure',
+  didNotConnect: '✅ Did not connect',
+  timedOut: '⚠️ Inconclusive (timed out)',
+  unexpected: status => `⚠️ Inconclusive (unexpected HTTP ${status} response)`,
+  summary: (n, total) => `Your browser trusted ${n} of ${total} compromised certificate chains.`,
+  incomplete: unknown => ` ${unknown} timed out or returned an unexpected response, so the result is incomplete. ` +
+    'Please try again later, or from a network without a TLS-intercepting proxy.',
+  runAgain: 'Run again',
+}, window.CHECKER_STRINGS || {});
+
+const resultsBody = document.querySelector('#results tbody');
+const summary = document.getElementById('summary');
+const rerun = document.getElementById('rerun');
+
+function cell(text, cls) {
+  const td = document.createElement('td');
+  td.textContent = text;
+  if (cls) td.className = cls;
+  return td;
+}
+
+async function probe(host) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`https://${host}/?t=${Date.now()}`, { cache: 'no-store', signal: controller.signal });
+    // A TLS-intercepting proxy terminates the connection itself, so its
+    // responses say nothing about whether this browser trusts the chain.
+    const body = await res.text();
+    if (!body.includes(EXPECTED_BODY)) {
+      return { status: 'unknown', text: S.unexpected(res.status) };
+    }
+    return { status: 'connected', text: S.insecure };
+  } catch (err) {
+    // A slow server is not evidence that the chain was rejected.
+    if (err.name === 'AbortError') return { status: 'unknown', text: S.timedOut };
+    // Browsers report TLS failures and network errors identically here.
+    return { status: 'blocked', text: S.didNotConnect };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const cells = HOSTS.map(({ host, label, root, noct }) => {
+  const tr = document.createElement('tr');
+  const tdName = document.createElement('td');
+  const a = document.createElement('a');
+  a.href = `https://${host}/`; a.rel = 'noopener'; a.target = '_blank'; a.textContent = label; a.translate = false;
+  tdName.appendChild(a);
+  if (noct) {
+    const abbr = document.createElement('abbr');
+    abbr.title = S.noctTitle; abbr.textContent = 'No CT';
+    tdName.append(' (', abbr, ')');
+  }
+  const tdResult = cell(S.notYetChecked, 'pending');
+  const tdRoot = cell(root); tdRoot.translate = false;
+  tr.append(tdName, tdRoot, tdResult);
+  resultsBody.appendChild(tr);
+  return tdResult;
+});
+
+async function run() {
+  summary.textContent = '';
+  for (const td of cells) {
+    td.textContent = S.checking;
+    td.className = 'pending';
+  }
+  const results = await Promise.all(HOSTS.map(async ({ host }, i) => {
+    const r = await probe(host);
+    cells[i].textContent = r.text;
+    cells[i].className = { connected: 'bad', blocked: 'good', unknown: 'pending' }[r.status];
+    return r.status;
+  }));
+  const n = results.filter(s => s === 'connected').length;
+  const unknown = results.filter(s => s === 'unknown').length;
+  summary.textContent = S.summary(n, HOSTS.length) + (unknown ? S.incomplete(unknown) : '');
+}
+
+// Disable the button until the run has finished and the cooldown has passed.
+async function start() {
+  observer.disconnect();
+  rerun.disabled = true;
+  await Promise.all([run(), new Promise(r => setTimeout(r, COOLDOWN_MS))]);
+  rerun.textContent = S.runAgain;
+  rerun.disabled = false;
+}
+
+// Run automatically the first time the results table scrolls into view.
+const observer = new IntersectionObserver(entries => {
+  if (entries.some(e => e.isIntersecting)) start();
+});
+observer.observe(document.getElementById('results'));
+
+rerun.addEventListener('click', start);

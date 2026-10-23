@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="主要なルートプログラムで信頼されている eMudhra の中間CA証明書 8 件の秘密鍵が侵害されました。お使いのブラウザが影響を受けるか確認し、対処方法をご覧ください。">
+  <title>【下書き】eMudhra 中間CA証明書の秘密鍵の侵害について</title>
+  <!-- Unreviewed draft: keep out of search results until approved. -->
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="alternate" hreflang="en" href="https://emudhra.we-have-a-problem.com/">
+  <script>
+  // Japanese strings for the shared checker. Any key omitted keeps the English default.
+  window.CHECKER_STRINGS = {
+    noctTitle: 'Certificate Transparency なし: この証明書は CT に一度も記録されておらず、SCT もありません。' +
+      'Chrome、Safari、Firefox など CT を必須とするクライアントは、中間CAを信頼していてもこの証明書を拒否します。',
+    notYetChecked: '未確認',
+    checking: '確認中…',
+    insecure: '❌ 危険（接続できました）',
+    didNotConnect: '✅ 接続されませんでした',
+    timedOut: '⚠️ 判定不能（タイムアウト）',
+    unexpected: status => `⚠️ 判定不能（予期しない HTTP ${status} 応答）`,
+    summary: (n, total) => `このブラウザは ${total} 件の侵害された証明書チェーンのうち ${n} 件を信頼しました。`,
+    incomplete: unknown => `${unknown} 件はタイムアウトまたは予期しない応答のため、結果は不完全です。` +
+      'しばらくしてから、または TLS を検査するプロキシのないネットワークから再度お試しください。',
+    runAgain: 'もう一度確認する',
+  };
+  </script>
+  <!-- The host list lives with the English page, so additions there apply here automatically. -->
+  <script src="https://emudhra.we-have-a-problem.com/checker.js" defer></script>
+  <style>
+    html { font: 15px/1.7 system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    @media (min-width: 30rem) { html { font-size: 17px; } }
+    body { margin: 2rem 0 5rem; color: #333; }
+    .container { max-width: 50rem; margin: 0 auto; padding: 0 1rem; }
+    a { color: #0074d9; text-decoration: none; }
+    a:hover, a:focus { text-decoration: underline; }
+    h1 { font-size: 1.6rem; line-height: 1.4; margin: 0 0 1rem; color: #111; }
+    h2 { font-size: 1.15rem; margin: 2.5rem 0 1rem; color: #111; }
+    p, ul, table { margin: 0 0 1rem; }
+    table { width: 100%; border: 1px solid #ccc; border-collapse: collapse; }
+    td, th { padding: .25rem .5rem; border: 1px solid #ccc; text-align: left; vertical-align: top; }
+    th { background: #f5f5f5; font-weight: bold; }
+    hr { border: none; margin: 1.5rem 0; border-bottom: 1px solid #ccc; }
+    .good { color: #090; }
+    .bad { color: #c00; }
+    .pending { color: #999; }
+    .note { color: #666; font-size: .9rem; }
+    .draft { border: 3px solid #c00; background: #fff4f4; color: #900; padding: .75rem 1rem; margin: 0 0 1.5rem; font-weight: bold; }
+    .draft p { margin: 0 0 .5rem; }
+    .draft p:last-child { margin: 0; }
+    abbr[title] { cursor: help; }
+    small { color: #808080; }
+    button { font: inherit; font-size: .9rem; padding: .2rem .6rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<div class="draft" role="note">
+  <p>【下書き・未承認】このページは機械翻訳による草稿で、まだ内容の確認と承認を受けていません。誤りを含む可能性があります。正式な情報は<a href="https://emudhra.we-have-a-problem.com/" hreflang="en">英語版</a>をご覧ください。</p>
+  <p lang="en">DRAFT: This page is a machine-translated draft that has not yet been reviewed or approved. It may contain errors. Refer to the <a href="https://emudhra.we-have-a-problem.com/">English page</a>.</p>
+</div>
+
+<p class="note"><a href="https://emudhra.we-have-a-problem.com/" hreflang="en">English</a> / 日本語（要約）</p>
+
+<h1>eMudhra 中間CA証明書の秘密鍵の侵害について</h1>
+
+<p><strong>2026年10月20日</strong></p>
+
+<p>Mozilla、Microsoft、Apple、Chrome の各ルートプログラムで信頼されている eMudhra の中間CA証明書 8 件の秘密鍵が侵害されました。この秘密鍵を持つ攻撃者は、任意のウェブサイトやサービスになりすますことができます。</p>
+
+<p class="note">このページは<a href="https://emudhra.we-have-a-problem.com/" hreflang="en">英語版</a>の要約です（翻訳: ＜翻訳者名＞）。英語版の方が頻繁に更新されます。最新かつ詳細な情報は英語版をご覧ください。</p>
+
+<h2 id="users">利用者がすべきこと</h2>
+
+<p>ブラウザと OS をできるだけ早く最新版に更新してください。Firefox と Chrome は 10 月 17 日から、Microsoft のプラットフォームは 20 日から、Apple 製品は 22 日から、これらの証明書をブロックしています。</p>
+
+<h2 id="check">このブラウザはまだ侵害された中間CAを信頼していますか？</h2>
+
+<table id="results">
+  <thead><tr><th>中間CA</th><th>ルート証明書</th><th>結果</th></tr></thead>
+  <tbody></tbody>
+</table>
+<p><button id="rerun" type="button">確認する</button> <small id="summary"></small></p>
+
+<p><em>No CT</em> と付いた 2 行は、Certificate Transparency（CT）に一度も記録されていない証明書を使っています。CT を必須とするクライアントは、中間CAを信頼していてもこれらの証明書を拒否します。この 2 行で接続できた場合、そのクライアントは侵害された中間CAを信頼しており、かつ CT を必須としていないため、誰にも気付かれずに攻撃を受けるおそれがあります。</p>
+
+<p>この確認は、今お使いのブラウザについてのみ有効です。curl などのコマンドラインツールや他のアプリケーションの確認方法は、英語版の<a href="https://emudhra.we-have-a-problem.com/#check" hreflang="en">該当する節</a>を参照してください。</p>
+
+<h2 id="developers">開発者・管理者向け</h2>
+
+<p>ブラウザ以外の多くのクライアントは失効情報を利用しないため、ソフトウェアの更新が必要です。詳細は英語版の以下の節を参照してください。</p>
+
+<ul>
+  <li><a href="https://emudhra.we-have-a-problem.com/#developers" hreflang="en">修正済みソフトウェアの一覧</a>（OS、ルート証明書バンドル、言語ランタイム、ツール）</li>
+  <li><a href="https://emudhra.we-have-a-problem.com/#workarounds" hreflang="en">修正版が提供されるまでの回避策</a>（macOS、Linux、Windows、NetBSD、FreeBSD）</li>
+  <li><a href="https://emudhra.we-have-a-problem.com/#cause" hreflang="en">原因について判明していること</a></li>
+  <li><a href="https://emudhra.we-have-a-problem.com/#operators" hreflang="en">トラストストア運用者向けの情報</a></li>
+</ul>
+
+<hr>
+
+<p class="note">このページは <a href="https://emudhra.we-have-a-problem.com/" hreflang="en">emudhra.we-have-a-problem.com</a>（公開: <a href="https://github.com/dennisjackson">Dennis Jackson</a>、コミュニティの<a href="https://github.com/galadran/we-have-a-problem.com/graphs/contributors">多くの貢献者</a>による）の要約・翻訳です。誤りや改善案は <a href="https://github.com/galadran/we-have-a-problem.com">GitHub</a> までお知らせください。</p>
+
+</div>
+
+</body>
+</html>
